@@ -32,6 +32,8 @@ function login() {
     // Establecer usuario actual y guardar en localStorage
     currentUser = username;
     localStorage.setItem('currentUser', username);
+    // Actualizar display de usuario
+    document.getElementById('userDisplay').textContent = 'Usuario: ' + username;
     // Ocultar login y mostrar app
     document.getElementById('loginContainer').style.display = 'none';
     document.getElementById('app').style.display = 'block';
@@ -51,6 +53,17 @@ function logout() {
     document.getElementById('username').value = '';
     document.getElementById('password').value = '';
     document.getElementById('loginMessage').textContent = '';
+}
+
+// Función para alternar tema
+function toggleTheme() {
+    document.body.classList.toggle('dark-theme');
+    let icon = document.querySelector('#themeToggle i');
+    if (document.body.classList.contains('dark-theme')) {
+        icon.className = 'fas fa-sun';
+    } else {
+        icon.className = 'fas fa-moon';
+    }
 }
 
 // Función para agregar una nueva tarea
@@ -104,10 +117,12 @@ function mostrarTareas(filtrar = false) {
         // Obtener valores de filtros
         let filterCat = document.getElementById("filterCategoria").value;
         let filterPri = document.getElementById("filterPrioridad").value;
-        // Filtrar tareas según categoría y prioridad
+        let searchTerm = document.getElementById("searchInput").value.toLowerCase();
+        // Filtrar tareas según categoría, prioridad y búsqueda
         tareasFiltradas = tareas.filter(t =>
             (!filterCat || t.categoria === filterCat) &&
-            (!filterPri || t.prioridad === filterPri)
+            (!filterPri || t.prioridad === filterPri) &&
+            (!searchTerm || t.texto.toLowerCase().includes(searchTerm))
         );
     }
 
@@ -122,6 +137,10 @@ function mostrarTareas(filtrar = false) {
         span.textContent = `${tarea.texto} (${tarea.categoria}, ${tarea.prioridad}${tarea.fecha ? ', ' + tarea.fecha : ''})`;
         // Si está completada, agregar clases de Bootstrap
         if (tarea.completada) span.classList.add("text-decoration-line-through", "text-muted");
+        // Agregar color por prioridad
+        if (tarea.prioridad === 'Alta') span.classList.add("text-danger");
+        else if (tarea.prioridad === 'Media') span.classList.add("text-warning");
+        else if (tarea.prioridad === 'Baja') span.classList.add("text-success");
 
         // Evento para marcar/desmarcar como completada
         span.onclick = function() {
@@ -136,7 +155,7 @@ function mostrarTareas(filtrar = false) {
 
         // Botón editar
         let editarBtn = document.createElement("button");
-        editarBtn.textContent = "Editar";
+        editarBtn.innerHTML = '<i class="fas fa-edit"></i>';
         editarBtn.className = "btn btn-warning btn-sm";
         editarBtn.onclick = function() {
             editarTarea(tarea.id);
@@ -144,7 +163,7 @@ function mostrarTareas(filtrar = false) {
 
         // Botón eliminar
         let boton = document.createElement("button");
-        boton.textContent = "Eliminar";
+        boton.innerHTML = '<i class="fas fa-trash"></i>';
         boton.className = "btn btn-danger btn-sm";
         boton.onclick = function() {
             // Filtrar tarea del array
@@ -168,6 +187,8 @@ function mostrarTareas(filtrar = false) {
 
     // Actualizar contador en la UI
     actualizarContador();
+    // Actualizar estadísticas
+    actualizarEstadisticas();
 }
 
 // Función para editar una tarea
@@ -190,9 +211,24 @@ function filtrarTareas() {
     mostrarTareas(true);
 }
 
+// Función para buscar tareas
+function buscarTareas() {
+    mostrarTareas(true);
+}
+
 // Función para actualizar el contador de tareas
 function actualizarContador() {
     document.getElementById("contador").textContent = contador + " tareas";
+}
+
+// Función para actualizar estadísticas
+function actualizarEstadisticas() {
+    let completadas = tareas.filter(t => t.completada).length;
+    let pendientes = tareas.filter(t => !t.completada).length;
+    let conFecha = tareas.filter(t => t.fecha).length;
+    document.getElementById("completadas").textContent = completadas;
+    document.getElementById("pendientes").textContent = pendientes;
+    document.getElementById("conFecha").textContent = conFecha;
 }
 
 // Función para guardar tareas en localStorage
@@ -211,6 +247,8 @@ window.onload = function() {
     // Verificar si hay un usuario guardado
     if (localStorage.getItem('currentUser')) {
         currentUser = localStorage.getItem('currentUser');
+        // Actualizar display de usuario
+        document.getElementById('userDisplay').textContent = 'Usuario: ' + currentUser;
         // Ocultar login y mostrar app
         document.getElementById('loginContainer').style.display = 'none';
         document.getElementById('app').style.display = 'block';
